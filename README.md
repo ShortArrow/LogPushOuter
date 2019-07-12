@@ -56,7 +56,9 @@ Keep delete log for "LogCount" days in "LogFolder".
 
 ## Install
 
+After `git clone` or `download zip`,
 Make it run regularly using [CRON](https://qiita.com/tossh/items/e135bd063a50087c3d6a) or [Task Scheduler](https://docs.microsoft.com/ja-jp/windows/win32/taskschd/task-scheduler-start-page). For security reasons, function restrictions will be applied if you do not have administrator privileges.
+Note : [How to Remote](https://help.github.com/en/articles/which-remote-url-should-i-use)
 
 ## Licence
 
