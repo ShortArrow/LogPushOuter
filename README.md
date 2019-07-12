@@ -54,6 +54,8 @@ Delete all files, leaving only the latest "" QueueSize "" in the folder specifie
 
 Keep delete log for "LogCount" days in "LogFolder".
 
+If the specified path does not exist, it will be ignored.
+
 ## Install
 
 After `git clone` or `download zip`,
