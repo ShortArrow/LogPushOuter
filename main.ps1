@@ -8,32 +8,82 @@ function Test-Admin {
     $adm = [System.Security.Principal.WindowsBuiltInRole]::Administrator
     $prp.IsInRole($adm)
 }
-
-if ([int]$psversiontable.psversion.major -le 3) {
-    Write-Host "PowerShell version need 3 or later" -BackgroundColor Red -ForegroundColor White
-}
-else {
-    Write-Host "PowerShell version is Fit" -BackgroundColor Green -ForegroundColor White
-}
-
-if ((Test-Admin) -eq $false) {
-    Write-Host 'You need Administrator privileges to run this.' -BackgroundColor Red -ForegroundColor White
-    return
+function MyLog {
+    param($Behavior, $Target, $Result)
+    if (!(Test-Path $SettingFile.LogFolder)) {
+        New-Item $SettingFile.LogFolder -ItemType Directory -Force
+    }
+    $LogFile = $SettingFile.LogFolder + "\lpolog" + (Get-Date -Format "yyyyMMdd") + ".log"
+    Write-Output ("""{0}"",""{1}"",""{2}"",""{3}"",""{4}""" `
+            -f (Get-Date -Format "yyyyMMdd"), (Get-Date -Format "HHmmss"), $Behavior, $Target, $Result) |
+    Out-File -LiteralPath $LogFile -Append -Force
 }
 
-
-Write-Host "-------Process Wait--------"
-New-Item "c:\LogPushOuter" -ItemType Directory -Force
-$LogFile = "c:\LogPushOuter\lpolog" + (Get-Date).Year + (Get-Date).Month + (Get-Date).Day + ".log"
-Get-Date | Out-File -LiteralPath $LogFile -Append -Force
-Get-ChildItem | ForEach-Object { ((Get-Date).date - $_.LastWriteTime.date).days -le 9 }
-
-if ($Debug) {
-    $WaitTime = 5
+function Push-Queue {
+    param (
+        $Path,
+        $QueueLength
+    )
+    Set-Location $Path
+    $MostOlder = (Get-Date)
+    while ((Get-ChildItem $Path | Where-Object { ! $_.PsIsContainer }).Count -gt $QueueLength) {
+        foreach ($item in (Get-ChildItem)) {
+            if (! $item.PSIsContainer) {
+                if ($MostOlder -ge $item.CreationTime) {
+                    $MostOlder = $item.CreationTime
+                }
+                if ($MostOlder = $item.CreationTime) {
+                    MyLog -Behavior "delete" -Target $item.FullName -Result "before"
+                    Write-Host $item Delete !!
+                    Remove-Item $item
+                    if (!(Test-Path $item)) {
+                        MyLog -Behavior "delete" -Target $item.FullName -Result "success"
+                    }
+                    else {
+                        MyLog -Behavior "delete" -Target $item.FullName -Result "failure"
+                    }
+                    break
+                }
+            }
+        }
+    }
 }
-else {
-    $WaitTime = 900
+    
+    
+function Start-Main {
+    param (
+            
+    )
+        
+    if ([int]$psversiontable.psversion.major -gt 6) {
+        Write-Host "PowerShell version need 5 or later" -BackgroundColor Red -ForegroundColor Black
+        return
+    }
+            
+    if ((Test-Admin) -eq $false) {
+        Write-Host 'You need Administrator privileges to run this.' -BackgroundColor Red -ForegroundColor Black
+        return
+    }
+            
+            
+            
+    foreach ($path in $SettingFile.path) {
+        if (Test-Path $path) {
+            # Write-Host $path
+            Push-Queue -path $path -QueueLength $SettingFile.QueueSize
+        }
+        else {
+            MyLog -Behavior "find" -Target $path -Result "not found"
+        }
+    }
+    Push-Queue -Path $SettingFile.LogFolder -QueueLength $SettingFile.LogCount
+            
 }
-
-Write-Host "Fin" -BackgroundColor Green -ForegroundColor White
-
+        
+        
+$SettingFile = ( Get-Content -Raw .\settings.json -Encoding UTF8 | ConvertFrom-Json)
+MyLog -Behavior "run" -Target "process" -Result "start"
+Start-Main
+MyLog -Behavior "run" -Target "process" -Result "finish"
+Write-Host "Finish" -BackgroundColor Green -ForegroundColor Black
+exit
