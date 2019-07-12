@@ -1,8 +1,6 @@
 
 # LogPushOuter
 
-====
-
 This is Auto Pusher of LogFile in MultiFolders.
 
 ## Description
@@ -58,9 +56,11 @@ Keep delete log for "LogCount" days in "LogFolder".
 
 ## Install
 
-none
+Make it run regularly using [CRON](https://qiita.com/tossh/items/e135bd063a50087c3d6a) or [Task Scheduler](https://docs.microsoft.com/ja-jp/windows/win32/taskschd/task-scheduler-start-page). For security reasons, function restrictions will be applied if you do not have administrator privileges.
 
 ## Licence
+
+[GNU General Public License v3.0](https://github.com/ShortArrow/LogPushOuter/blob/master/LICENSE)
 
 ## Author
 
